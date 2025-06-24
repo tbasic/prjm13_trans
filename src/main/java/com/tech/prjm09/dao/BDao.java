@@ -328,7 +328,7 @@ public class BDao {
 				// TODO: handle exception
 			}
 		}
-		return rn;
+		return -1;
 	}
 
 }
