@@ -218,12 +218,19 @@ public class BDao {
 			String btitle,String bcontent,
 			String bgroup,String bstep, String bindent) {
 //		transaction
-		replyShape(bgroup,bstep);
 		
-		Connection conn=null;
+		
+//		Connection conn=null;
 		PreparedStatement pstmt=null;
 		try {
 			conn=DBCon.getConnection();
+//			autocommit변경
+			conn.setAutoCommit(false);//자동커밋해제
+			
+			int rn1=replyShape(bgroup,bstep,conn);
+			System.out.println("rn1111111 : "+rn1);
+			
+			int rn2=0;
 			String query="insert into replyboard(bid,bname,btitle,"
 					+ "bcontent,bgroup,bstep,bindent) "
 					+ "values(replyboard_seq.nextval,?,?,?,?,?,?)";
@@ -235,7 +242,18 @@ public class BDao {
 			pstmt.setInt(4, Integer.parseInt(bgroup));
 			pstmt.setInt(5, Integer.parseInt(bstep)+1);
 			pstmt.setInt(6, Integer.parseInt(bindent)+1);	
-			int rn=pstmt.executeUpdate();
+			rn2=pstmt.executeUpdate();
+			System.out.println("rn22222222 : "+rn2);
+			
+			
+			if(rn1>=0 && rn2>=1) {
+				conn.commit();
+				System.out.println("commmmmmmmmmmit");
+			}else {
+				conn.rollback();
+				System.out.println("rollbackkkkkkkkkk");
+			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}finally {
@@ -287,28 +305,30 @@ public class BDao {
 		}
 		return dto;
 	}
-	public void replyShape(String strgroup,String strstep) {
+	public int replyShape(String strgroup,String strstep,Connection tracon) {
 		
 		PreparedStatement pstmt=null;
+		int rn=0;
 		try {
-			conn=DBCon.getConnection();
+//			conn=DBCon.getConnection();
 			String query="update replyboard set bstep=bstep+1 "
 					+ "where bgroup=? and bstep>?";	
-			pstmt=conn.prepareStatement(query);
+			pstmt=tracon.prepareStatement(query);
 			pstmt.setInt(1, Integer.parseInt(strgroup));
 			pstmt.setInt(2, Integer.parseInt(strstep));
 			
-			int rn=pstmt.executeUpdate();
+			rn=pstmt.executeUpdate();
 		} catch (Exception e) {
 			// TODO: handle exception
 		}finally {
 			try {
 				if(pstmt!=null) {pstmt.close();}
-				if(conn!=null) {conn.close();}
+				/* if(conn!=null) {conn.close();} */
 			} catch (Exception e2) {
 				// TODO: handle exception
 			}
-		}		
+		}
+		return rn;
 	}
 
 }
